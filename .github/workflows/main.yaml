@@ -1,0 +1,25 @@
+name: GraalVM Spring Boot Demo Github Actions Pipeline
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Test Java Code
+        run: |
+          mvn --no-transfer-progress native:compile -Pnative -Pbaseline -DskipNativeTests
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: native-binaries-${{ matrix.os }}
+          path: |
+            target/jibber
